@@ -44,7 +44,7 @@ public class Apresentacao extends javax.swing.JFrame {
                 public void run() {
                     dadosEncaminhados.setText(dadosEncaminhados.getText()+listaProcessos.getLast().getIdentificador()+
                     "° processo: Execução  \n");
-                    listaProcessos.getLast().setCiclo(listaProcessos.get(idProximoProcesso).getCiclo()+1);
+                    listaProcessos.getLast().setCiclo(listaProcessos.get(idProximoProcesso).getCiclo()+1); // MEXER AQUI, VER SE UTILIZANDO O ATRIBUTO PROCESSOEXEC EVITA ESSE ERRO
                     System.out.println("Ciclo processo "+listaProcessos.getLast().getIdentificador()+":"+listaProcessos.getLast().getCiclo());
                     finalizarProcesso();
                 }
