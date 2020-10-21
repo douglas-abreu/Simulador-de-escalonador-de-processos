@@ -51,7 +51,4 @@ public class Processo {
     public void setIdProximoProcesso(int idProximoProcesso) {
         this.idProximoProcesso = idProximoProcesso;
     }
-
-    
-    
 }

@@ -13,9 +13,7 @@ public class Apresentacao extends javax.swing.JFrame {
     public void criarProcesso(){
         listaProcessos.add(new Processo(numProcesso));
         numProcesso++;
-        dadosEncaminhados.setText(dadosEncaminhados.getText()+
-        listaProcessos.getLast().getIdentificador()+"° processo: Pronto \n");
-        execucaoDoProcesso();
+        verificarSeHaProcessos();
     }
     
     public void execucaoDoProcesso(){
@@ -28,8 +26,8 @@ public class Apresentacao extends javax.swing.JFrame {
             timer.schedule(new TimerTask() {
             @Override
                 public void run() {
-                    dadosEncaminhados.setText(dadosEncaminhados.getText()+idProximoProcesso+
-                    "° processo: Execução  \n");
+                    dadosEncaminhados.setText(dadosEncaminhados.getText()+
+                    "Processo "+idProximoProcesso+": Execução  \n");
                     listaProcessos.getLast().setCiclo(listaProcessos.get(idProximoProcesso).getCiclo()+1);
                     System.out.println("Ciclo processo "+listaProcessos.getLast().getIdentificador()+":"+listaProcessos.getLast().getCiclo());
                 }
@@ -40,67 +38,82 @@ public class Apresentacao extends javax.swing.JFrame {
             processador.setOcupado(true);
             listaProcessos.getLast().setExecucao(true);
             timer.schedule(new TimerTask() {
-            @Override
+                @Override
                 public void run() {
-                    dadosEncaminhados.setText(dadosEncaminhados.getText()+listaProcessos.getLast().getIdentificador()+
-                    "° processo: Execução  \n");
-                    listaProcessos.getLast().setCiclo(listaProcessos.get(idProximoProcesso).getCiclo()+1); // MEXER AQUI, VER SE UTILIZANDO O ATRIBUTO PROCESSOEXEC EVITA ESSE ERRO
+                    dadosEncaminhados.setText(dadosEncaminhados.getText()+
+                    "Processo "+listaProcessos.getLast().getIdentificador()+": Execução  \n");
+                    listaProcessos.getLast().setCiclo(listaProcessos.getLast().getCiclo()+1); // MEXER AQUI, VER SE UTILIZANDO O ATRIBUTO PROCESSOEXEC EVITA ESSE ERRO
                     System.out.println("Ciclo processo "+listaProcessos.getLast().getIdentificador()+":"+listaProcessos.getLast().getCiclo());
                     finalizarProcesso();
                 }
             }, 2*1000);
-            
-            
         }
     }
     
     public void finalizarProcesso(){
-       listaProcessos.forEach((t) -> {if (t.isExecucao() == true && t.getCiclo() == 3){
-                                                   timer.schedule(new TimerTask() {
-                                                   @Override
-                                                            public void run() {
-                                                                dadosEncaminhados.setText(dadosEncaminhados.getText()+
-                                                                t.getIdentificador()+"° processo: Finalizado \n");
-                                                            }
-                                                        }, 2*1000);
-                                                    idProximoProcesso = t.getIdProximoProcesso();                                                   
-                                                    listaProcessos.remove(t);
-                                                  }
-                                        });
+        listaProcessos.forEach((t) -> {
+            if (t.isExecucao() == true && t.getCiclo() == 2){
+                timer.schedule(new TimerTask() {
+                    @Override
+                        public void run() {
+                            dadosEncaminhados.setText(dadosEncaminhados.getText()+
+                            "Processo "+t.getIdentificador()+": Finalizado \n");
+                        }
+                }, 2*1000);
+                                                   
+            if(listaProcessos.size() == 1){
+                idProximoProcesso++;
+            }else{
+                idProximoProcesso = t.getIdProximoProcesso();                                                   
+            }
+            listaProcessos.remove(t);
+        }});
                                         
-                                        timer.schedule(new TimerTask() {
-                                        @Override
-                                            public void run() {
-                                                processador.setOcupado(false);
-                                                if(verificarSeHaProcessos()){
-                                                    execucaoDoProcesso();
-                                                }
-                                            }
-                                        }, 2*1000);
-        
+        processador.setOcupado(false);
+        verificarSeHaProcessos();
     }
 
-    public Boolean verificarSeHaProcessos(){
+    public void verificarSeHaProcessos(){
         if(!listaProcessos.isEmpty()){
-            dadosEncaminhados.setText(dadosEncaminhados.getText()+
-            idProximoProcesso+"° processo: Pronto \n");
-            dadosEncaminhados.setText(dadosEncaminhados.getText()+
-            "Há "+listaProcessos.size()+" processo(s) pronto(s). \n");
-            return true;
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    dadosEncaminhados.setText(dadosEncaminhados.getText()+
+                    "Processo "+idProximoProcesso+": Pronto \n");
+                }
+            }, 2*1000);
+            
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    dadosEncaminhados.setText(dadosEncaminhados.getText()+
+                    "Há "+listaProcessos.size()+" processo(s) pronto(s). \n");
+                }
+            }, 4*1000);
+            
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    execucaoDoProcesso();
+                }
+            }, 4*1000);
+            
         }else{
-            dadosEncaminhados.setText(dadosEncaminhados.getText()+
-            "Não há processos pronto. \n");
-            return false;
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    dadosEncaminhados.setText(dadosEncaminhados.getText()+
+                    "Não há processo pronto, aguardando novos processos. \n");
+                }
+            }, 4*1000);
         }
     }
+    
 
     public Apresentacao() {
         initComponents();
-        
     }
-    
-    
-    
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
