@@ -5,84 +5,22 @@ import java.util.TimerTask;
 public class Apresentacao extends javax.swing.JFrame {
     int numProcesso = 0;
     int idProximoProcesso = 0;
-    Processo processoExec;
+    Processo processoEmExec;
     Processador processador = new Processador(false);
     LinkedList<Processo> listaProcessos = new LinkedList<>();
     Timer timer = new Timer();
     
     public void criarProcesso(){
         listaProcessos.add(new Processo(numProcesso));
+        listaProcessos.getLast().setIdProximoProcesso(listaProcessos.getFirst().getIdentificador());
+        dadosEncaminhados.setText(dadosEncaminhados.getText()+
+        "Processo "+listaProcessos.getLast().getIdentificador()+": Pronto  \n");
         numProcesso++;
         verificarSeHaProcessos();
     }
     
-    public void execucaoDoProcesso(){
-        if(listaProcessos.size() > 1 && processador.isOcupado()){
-            listaProcessos.get(listaProcessos.size()-2).setIdProximoProcesso(listaProcessos.getLast().getIdentificador());
-        }else if(listaProcessos.size() > 1 && !processador.isOcupado()){
-            processador.setOcupado(true);
-            idProximoProcesso = listaProcessos.getLast().getIdentificador();
-            listaProcessos.get(idProximoProcesso).setExecucao(true);
-            timer.schedule(new TimerTask() {
-            @Override
-                public void run() {
-                    dadosEncaminhados.setText(dadosEncaminhados.getText()+
-                    "Processo "+idProximoProcesso+": Execução  \n");
-                    listaProcessos.getLast().setCiclo(listaProcessos.get(idProximoProcesso).getCiclo()+1);
-                    System.out.println("Ciclo processo "+listaProcessos.getLast().getIdentificador()+":"+listaProcessos.getLast().getCiclo());
-                }
-            }, 2*1000);
-            finalizarProcesso();
-            
-        }else{
-            processador.setOcupado(true);
-            listaProcessos.getLast().setExecucao(true);
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    dadosEncaminhados.setText(dadosEncaminhados.getText()+
-                    "Processo "+listaProcessos.getLast().getIdentificador()+": Execução  \n");
-                    listaProcessos.getLast().setCiclo(listaProcessos.getLast().getCiclo()+1); // MEXER AQUI, VER SE UTILIZANDO O ATRIBUTO PROCESSOEXEC EVITA ESSE ERRO
-                    System.out.println("Ciclo processo "+listaProcessos.getLast().getIdentificador()+":"+listaProcessos.getLast().getCiclo());
-                    finalizarProcesso();
-                }
-            }, 2*1000);
-        }
-    }
-    
-    public void finalizarProcesso(){
-        listaProcessos.forEach((t) -> {
-            if (t.isExecucao() == true && t.getCiclo() == 2){
-                timer.schedule(new TimerTask() {
-                    @Override
-                        public void run() {
-                            dadosEncaminhados.setText(dadosEncaminhados.getText()+
-                            "Processo "+t.getIdentificador()+": Finalizado \n");
-                        }
-                }, 2*1000);
-                                                   
-            if(listaProcessos.size() == 1){
-                idProximoProcesso++;
-            }else{
-                idProximoProcesso = t.getIdProximoProcesso();                                                   
-            }
-            listaProcessos.remove(t);
-        }});
-                                        
-        processador.setOcupado(false);
-        verificarSeHaProcessos();
-    }
-
     public void verificarSeHaProcessos(){
-        if(!listaProcessos.isEmpty()){
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    dadosEncaminhados.setText(dadosEncaminhados.getText()+
-                    "Processo "+idProximoProcesso+": Pronto \n");
-                }
-            }, 2*1000);
-            
+        if(!listaProcessos.isEmpty()){ // se lista de processos não estiver vazia
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -109,7 +47,72 @@ public class Apresentacao extends javax.swing.JFrame {
         }
     }
     
-
+    public void execucaoDoProcesso(){
+        if(listaProcessos.size() > 1 && processador.isOcupado()){ // se processador estiver ocupado e lista superior a 1 processo
+            processoEmExec.setIdProximoProcesso(listaProcessos.getLast().getIdentificador()); // vou no meu processo em execução passo a ele o indentificador do ultimo processo criado.
+        }else if(listaProcessos.size() > 1 && !processador.isOcupado()){ // se tiver processos na lista e o processador estiver livre
+            processador.setOcupado(true);
+            listaProcessos.get(processoEmExec.getIdProximoProcesso()).setExecucao(true); // execute o processo que for o próximo da lista
+            timer.schedule(new TimerTask() {
+            @Override
+                public void run() {
+                    dadosEncaminhados.setText(dadosEncaminhados.getText()+
+                    "Processo "+idProximoProcesso+": Execução  \n");
+                    listaProcessos.getLast().setCiclo(listaProcessos.get(idProximoProcesso).getCiclo()+1);
+                    System.out.println("Ciclo processo "+listaProcessos.getLast().getIdentificador()+":"+listaProcessos.getLast().getCiclo());
+                }
+            }, 2*1000);
+            finalizarProcesso();
+        }else{ // se minha lista estiver vazia, executo o último da lista 
+            processador.setOcupado(true);
+            listaProcessos.getLast().setExecucao(true);
+            processoEmExec = listaProcessos.getLast();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    dadosEncaminhados.setText(dadosEncaminhados.getText()+
+                    "Processo "+processoEmExec.getIdentificador()+": Execução  \n");
+                    processoEmExec.setCiclo(processoEmExec.getCiclo()+1);
+                    System.out.println("Ciclo processo "+processoEmExec.getIdentificador()+":"+processoEmExec.getCiclo());
+                }
+            }, 2*1000);
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    dadosEncaminhados.setText(dadosEncaminhados.getText()+
+                    "Processo "+processoEmExec.getIdentificador()+": Pronto  \n");
+                    finalizarProcesso(); // e faço a finalização desse processo
+                }
+            }, 4*1000);
+        }
+    }
+    
+    public void finalizarProcesso(){
+        if (processoEmExec.getCiclo() == 2){ //procurar o processador que está em execução e verificar se seu ciclo ultrapassou 2
+            timer.schedule(new TimerTask() {
+                @Override
+                    public void run() {
+                        dadosEncaminhados.setText(dadosEncaminhados.getText()+
+                        "Processo "+processoEmExec.getIdentificador()+": Finalizado \n");
+                    }
+            }, 2*1000);                     
+            idProximoProcesso = processoEmExec.getIdProximoProcesso();
+            listaProcessos.remove(processoEmExec); // se sim, remover esse processo da lista
+        }else{
+            idProximoProcesso = processoEmExec.getIdProximoProcesso();  
+            processoEmExec.setExecucao(false);
+            timer.schedule(new TimerTask() {
+                @Override
+                    public void run() {
+                        dadosEncaminhados.setText(dadosEncaminhados.getText()+
+                        "Processador agora está disponível.\n");
+                    }
+            }, 2*1000);
+        }        
+        processador.setOcupado(false); // e libera o processo
+        verificarSeHaProcessos();
+    }
+    
     public Apresentacao() {
         initComponents();
     }
@@ -203,8 +206,6 @@ public class Apresentacao extends javax.swing.JFrame {
         }else{
             clickMe.setEnabled(false);
         }
-        
-        
     }//GEN-LAST:event_clickMeActionPerformed
 
     private void jtextExecucaoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtextExecucaoActionPerformed
@@ -216,7 +217,6 @@ public class Apresentacao extends javax.swing.JFrame {
             new Apresentacao().setVisible(true);
         });
     }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton clickMe;
     private javax.swing.JTextArea dadosEncaminhados;
