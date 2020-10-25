@@ -18,11 +18,8 @@ public class Apresentacao extends javax.swing.JFrame {
             "Processo "+listaProcessos.getLast().getIdentificador()+": Pronto  \n");
             numProcesso++; //1
         }
-        if(listaProcessos.size() > 1){
-            execucaoDoProcesso();
-        }else{
-            verificarSeHaProcessos();
-        }
+        verificarSeHaProcessos();
+        
     }
     
     public void verificarSeHaProcessos(){
@@ -57,20 +54,22 @@ public class Apresentacao extends javax.swing.JFrame {
             System.out.println("Entrou aqui");
         }else if(listaProcessos.size() > 1 && !processador.isOcupado()){ // se tiver processos na lista e o processador estiver livre
             processador.setOcupado(true);
+            System.out.println("Entrou no segundo");
             if(processoEmExec == null){
-                processoEmExec = listaProcessos.getLast();
+                System.out.println(listaProcessos.getFirst());
+                processoEmExec = listaProcessos.getFirst();
                 processoEmExec.setExecucao(true);
             }else{
                 processoEmExec = listaProcessos.get(processoEmExec.getIdProximoProcesso());
-                listaProcessos.get(processoEmExec.getIdProximoProcesso()).setExecucao(true); // execute o processo que for o próximo da lista
+                processoEmExec.setExecucao(true); // execute o processo que for o próximo da lista
             }
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                         dadosEncaminhados.setText(dadosEncaminhados.getText()+
-                        "Processo "+idProximoProcesso+": Execução  \n");
-                        listaProcessos.getLast().setCiclo(listaProcessos.get(idProximoProcesso).getCiclo()+1);
-                        System.out.println("Ciclo processo "+listaProcessos.getLast().getIdentificador()+":"+listaProcessos.getLast().getCiclo());
+                        "Processo "+processoEmExec.getIdentificador()+": Execução  \n");
+                        processoEmExec.setCiclo(listaProcessos.get(idProximoProcesso).getCiclo()+1);
+                        System.out.println("Ciclo processo "+processoEmExec.getIdentificador()+":"+processoEmExec.getCiclo());
                     }
                 }, 2*1000);
             finalizarProcesso();
@@ -104,12 +103,12 @@ public class Apresentacao extends javax.swing.JFrame {
                         dadosEncaminhados.setText(dadosEncaminhados.getText()+
                         "Processo "+processoEmExec.getIdentificador()+": Finalizado \n");
                     }
-            }, 2*1000);                     
-            idProximoProcesso = processoEmExec.getIdProximoProcesso();
+            }, 2*1000);
+            processoEmExec = listaProcessos.get(processoEmExec.getIdProximoProcesso());
             listaProcessos.remove(processoEmExec); // se sim, remover esse processo da lista
         }else{
-            idProximoProcesso = processoEmExec.getIdProximoProcesso();  
             processoEmExec.setExecucao(false);
+            processoEmExec = listaProcessos.get(processoEmExec.getIdProximoProcesso());;  
             timer.schedule(new TimerTask() {
                 @Override
                     public void run() {
@@ -129,7 +128,7 @@ public class Apresentacao extends javax.swing.JFrame {
             @Override
             public void run() {
                 processador.setOcupado(false); // e libera o processo
-            verificarSeHaProcessos();
+                verificarSeHaProcessos();
             }
         }, 4*1000);        
         
