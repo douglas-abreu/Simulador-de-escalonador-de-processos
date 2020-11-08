@@ -4,19 +4,21 @@ import java.util.TimerTask;
 
 public class Apresentacao extends javax.swing.JFrame {
     int numProcesso = 0;
-    int idProximoProcesso = 0;
     Processo processoEmExec;
     Processador processador = new Processador(false);
     LinkedList<Processo> listaProcessos = new LinkedList<>();
     Timer timer = new Timer();
+    Escalonador escalonador = new Escalonador();
     
     public void criarProcesso(int qtdProcessos){
         for(int i = 0; qtdProcessos > i; qtdProcessos--){
             listaProcessos.add(new Processo(numProcesso));
-            listaProcessos.getLast().setIdProximoProcesso(listaProcessos.getFirst().getIdentificador()); // 0
             dadosEncaminhados.setText(dadosEncaminhados.getText()+
-            "Processo "+listaProcessos.getLast().getIdentificador()+": Pronto  \n");
+            "Processo "+listaProcessos.getLast().getIdentificador()+": Pronto \n");
             numProcesso++; //1
+        }
+        if(listaProcessos.size() > 1){
+            escalonador.setIdProxProcesso(listaProcessos.indexOf(listaProcessos.getFirst()));
         }
         verificarSeHaProcessos();
         
@@ -49,18 +51,14 @@ public class Apresentacao extends javax.swing.JFrame {
     }
     
     public void execucaoDoProcesso(){
-        if(listaProcessos.size() > 1 && processador.isOcupado()){ //(O PROBLEMA TA AQUI) se processador estiver ocupado e lista superior a 1 processo
-            processoEmExec.setIdProximoProcesso(listaProcessos.getLast().getIdentificador()); // vou no meu processo em execução passo a ele o indentificador do ultimo processo criado.
-            System.out.println("Entrou aqui");
-        }else if(listaProcessos.size() > 1 && !processador.isOcupado()){ // se tiver processos na lista e o processador estiver livre
+        if(listaProcessos.size() > 1 && !processador.isOcupado()){ // se tiver processos na lista e o processador estiver livre
             processador.setOcupado(true);
-            System.out.println("Entrou no segundo");
-            if(processoEmExec == null){
-                System.out.println(listaProcessos.getFirst());
+            System.out.println("Entrou vai executar prox processo");
+            if(processoEmExec == null){ //se não houver histórico, execute o primeiro processo da lista.
                 processoEmExec = listaProcessos.getFirst();
                 processoEmExec.setExecucao(true);
             }else{
-                processoEmExec = listaProcessos.get(processoEmExec.getIdProximoProcesso());
+                processoEmExec = listaProcessos.get(escalonador.getIdProxProcesso());
                 processoEmExec.setExecucao(true); // execute o processo que for o próximo da lista
             }
             timer.schedule(new TimerTask() {
@@ -68,7 +66,7 @@ public class Apresentacao extends javax.swing.JFrame {
                 public void run() {
                         dadosEncaminhados.setText(dadosEncaminhados.getText()+
                         "Processo "+processoEmExec.getIdentificador()+": Execução  \n");
-                        processoEmExec.setCiclo(listaProcessos.get(idProximoProcesso).getCiclo()+1);
+                        processoEmExec.setCiclo(processoEmExec.getCiclo()+1);
                         System.out.println("Ciclo processo "+processoEmExec.getIdentificador()+":"+processoEmExec.getCiclo());
                     }
                 }, 2*1000);
@@ -104,11 +102,14 @@ public class Apresentacao extends javax.swing.JFrame {
                         "Processo "+processoEmExec.getIdentificador()+": Finalizado \n");
                     }
             }, 2*1000);
-            processoEmExec = listaProcessos.get(processoEmExec.getIdProximoProcesso());
-            listaProcessos.remove(processoEmExec); // se sim, remover esse processo da lista
+            listaProcessos.remove(processoEmExec);
+            if(listaProcessos.size() >= 2){
+                escalonador.setIdProxProcesso(1);
+            }else{
+                escalonador.setIdProxProcesso(0);
+            }
+            escalonador.setIdProcessoExec(0);
         }else{
-            processoEmExec.setExecucao(false);
-            processoEmExec = listaProcessos.get(processoEmExec.getIdProximoProcesso());;  
             timer.schedule(new TimerTask() {
                 @Override
                     public void run() {
