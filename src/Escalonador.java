@@ -22,4 +22,14 @@ public class Escalonador {
     public void setIdProxProcesso(int idProxProcesso) {
         this.idProxProcesso = idProxProcesso;
     }
+    
+    public void atualizarIds(){
+        this.setIdProcessoExec(getIdProxProcesso());
+        this.setIdProxProcesso(getIdProxProcesso()+1);
+    }
+    
+    public void reiniciarIds(){
+        setIdProcessoExec(0);
+        setIdProxProcesso(0);
+    }
 }
