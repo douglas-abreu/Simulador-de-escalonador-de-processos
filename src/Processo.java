@@ -3,13 +3,11 @@ public class Processo {
     private boolean pronto;
     private int identificador;
     private int ciclo;
-    private int idProximoProcesso;
 
     public Processo(int identificador) {
         this.execucao = false;
         this.pronto = true;
         this.identificador = identificador;
-        this.idProximoProcesso = 0;
     }
     
     public boolean isExecucao() {
@@ -42,13 +40,5 @@ public class Processo {
 
     public void setCiclo(int ciclo) {
         this.ciclo = ciclo;
-    }
-
-    public int getIdProximoProcesso() {
-        return idProximoProcesso;
-    }
-
-    public void setIdProximoProcesso(int idProximoProcesso) {
-        this.idProximoProcesso = idProximoProcesso;
     }
 }
