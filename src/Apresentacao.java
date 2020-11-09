@@ -21,10 +21,10 @@ public class Apresentacao extends javax.swing.JFrame {
         if (listaProcessos.size() > 1) {
             escalonador.setIdProxProcesso(1);
         }
-        verificarSeHaProcessos();
+        verificarLista();
     }
 
-    public void verificarSeHaProcessos() {
+    public void verificarLista() {
         if (!listaProcessos.isEmpty()) { // se lista de processos não estiver vazia
             timer.schedule(new TimerTask() {
                 @Override
@@ -36,7 +36,7 @@ public class Apresentacao extends javax.swing.JFrame {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    execucaoDoProcesso();
+                    executarProcesso();
                 }
             }, 2 * 1000);
         } else {
@@ -51,38 +51,31 @@ public class Apresentacao extends javax.swing.JFrame {
         }
     }
 
-    public void execucaoDoProcesso() {
+    public void executarProcesso() {
         if (listaProcessos.size() > 1 && !processador.isOcupado()) { // se tiver processos na lista e o processador estiver livre
             processador.setOcupado(true);
             if (processoEmExec == null) { //se não houver histórico, execute o primeiro processo da lista.
                 processoEmExec = listaProcessos.getFirst();
-                processoEmExec.setExecucao(true);
+                processoEmExec.atualizarEstados();
             } else {
                 processoEmExec = listaProcessos.get(escalonador.getIdProcessoExec());
-                processoEmExec.setExecucao(true); // execute o processo que for o próximo da lista
+                processoEmExec.atualizarEstados(); // execute o processo que for o próximo da lista
             }
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    dadosEncaminhados.setText(dadosEncaminhados.getText()
-                            + "Processo " + processoEmExec.getIdentificador() + ": Execução  \n");
-                    processoEmExec.setCiclo(processoEmExec.getCiclo() + 1);
-                    System.out.println("Ciclo processo " + processoEmExec.getIdentificador() + ":" + processoEmExec.getCiclo());
+                    etapaExecucao();
                 }
             }, 2 * 1000);
-            processoEmExec.setCiclo(processoEmExec.getCiclo() + 1);
             finalizarProcesso();
         } else { // se minha lista estiver vazia, executo o último da lista 
             processador.setOcupado(true);
-            listaProcessos.getLast().setExecucao(true);
+            listaProcessos.getLast().atualizarEstados();
             processoEmExec = listaProcessos.getLast();
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    dadosEncaminhados.setText(dadosEncaminhados.getText()
-                            + "Processo " + processoEmExec.getIdentificador() + ": Execução  \n");
-                    processoEmExec.setCiclo(processoEmExec.getCiclo() + 1);
-                    System.out.println("Ciclo processo " + processoEmExec.getIdentificador() + ":" + processoEmExec.getCiclo());
+                    etapaExecucao();
                 }
             }, 2 * 1000);
             timer.schedule(new TimerTask() {
@@ -95,7 +88,7 @@ public class Apresentacao extends javax.swing.JFrame {
     }
 
     public void finalizarProcesso() {
-        if (processoEmExec.getCiclo() >= numCiclo) { //procurar o processador que está em execução e verificar se seu ciclo ultrapassou 2
+        if (processoEmExec.getCiclo() >= numCiclo-1) { //procurar o processador que está em execução e verificar se seu ciclo ultrapassou 2
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -110,7 +103,7 @@ public class Apresentacao extends javax.swing.JFrame {
                 public void run() {
                     dadosEncaminhados.setText(dadosEncaminhados.getText()
                             + "Processador agora está disponível.\n");
-                            escalonador.reiniciarIds();
+                    escalonador.reiniciarIds();
                 }
             }, 4 * 1000);
         } else {
@@ -119,6 +112,7 @@ public class Apresentacao extends javax.swing.JFrame {
                 public void run() {
                     dadosEncaminhados.setText(dadosEncaminhados.getText()
                             + "Processo " + processoEmExec.getIdentificador() + ": Pronto \n");
+                    processoEmExec.atualizarEstados();
 
                 }
             }, 2 * 1000);
@@ -127,7 +121,7 @@ public class Apresentacao extends javax.swing.JFrame {
                 public void run() {
                     dadosEncaminhados.setText(dadosEncaminhados.getText()
                             + "Processador agora está disponível.\n");
-                            atualizarEscalonador();
+                    atualizarEscalonador();
                 }
             }, 4 * 1000);
         }
@@ -135,10 +129,9 @@ public class Apresentacao extends javax.swing.JFrame {
             @Override
             public void run() {
                 processador.setOcupado(false); // e libera o processo
-                verificarSeHaProcessos();
+                verificarLista();
             }
         }, 4 * 1000);
-
     }
 
     public void atualizarEscalonador() {
@@ -150,6 +143,12 @@ public class Apresentacao extends javax.swing.JFrame {
         } else {
             escalonador.reiniciarIds();
         }
+    }
+    
+    public void etapaExecucao(){
+        dadosEncaminhados.setText(dadosEncaminhados.getText()
+                                  + "Processo " + processoEmExec.getIdentificador() + ": Execução  \n");
+        processoEmExec.setCiclo(processoEmExec.getCiclo() + 1);
     }
 
     public Apresentacao() {
