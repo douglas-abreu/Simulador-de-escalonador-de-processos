@@ -41,4 +41,14 @@ public class Processo {
     public void setCiclo(int ciclo) {
         this.ciclo = ciclo;
     }
+    
+    public void atualizarEstados(){
+        if(this.pronto){
+            this.setPronto(false);
+            this.setExecucao(true);
+        }else{
+            this.setPronto(true);
+            this.setExecucao(false);
+        }
+    }
 }
