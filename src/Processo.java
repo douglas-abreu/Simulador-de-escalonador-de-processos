@@ -8,6 +8,7 @@ public class Processo {
         this.execucao = false;
         this.pronto = true;
         this.identificador = identificador;
+        this.ciclo = 0;
     }
     
     public boolean isExecucao() {
